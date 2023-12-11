@@ -1,11 +1,11 @@
-use actix_web::web;
+use actix_web::{error, web};
 
 pub async fn task1_everything_is_ok() -> &'static str {
     "Day -1 Task 1"
 }
 
-async fn task2_error() -> &'static str {
-    todo!()
+async fn task2_error() -> actix_web::Result<String> {
+    Err(error::ErrorInternalServerError("oops something went wrong"))
 }
 
 pub(crate) fn scope() -> actix_web::Scope {
