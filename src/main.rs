@@ -8,9 +8,5 @@ async fn hello_world() -> &'static str {
 
 #[shuttle_runtime::main]
 async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
-    let config = move |cfg: &mut ServiceConfig| {
-        cfg.service(hello_world);
-    };
-
-    Ok(config.into())
+    Ok(one_shuttle_cch::modify_service_config.into())
 }
