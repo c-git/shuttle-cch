@@ -14,6 +14,5 @@ struct Nums {
 #[tracing::instrument]
 async fn task1_cube_the_bits(nums: web::Path<Nums>) -> actix_web::Result<String> {
     info!("Start");
-    info!("{} {}", nums.num1, nums.num2);
-    todo!("yay")
+    Ok(format!("{}", (nums.num1 ^ nums.num2).pow(3)))
 }
