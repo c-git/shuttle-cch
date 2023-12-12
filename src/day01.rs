@@ -2,7 +2,9 @@ use actix_web::{web, Scope};
 use tracing::info;
 
 pub(crate) fn scope() -> Scope {
-    web::scope("/1").route("/{num1}/{num2}", web::get().to(task1_cube_the_bits))
+    web::scope("/1")
+        .route("/{num1}/{num2}", web::get().to(task1_cube_the_bits))
+        .route("/{args:.*}", web::get().to(task2_the_sled_id_system))
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -16,4 +18,13 @@ async fn task1_cube_the_bits(nums: web::Path<Nums>) -> actix_web::Result<String>
     let result = format!("{}", (nums.num1 ^ nums.num2).pow(3));
     info!("{result}");
     Ok(result)
+}
+
+#[tracing::instrument]
+async fn task2_the_sled_id_system(args: web::Path<String>) -> actix_web::Result<String> {
+    let mut arg_it = args.split('/').map(|x| x.parse::<i32>());
+
+    // let mut result = arg_it.next().expect("Assumed to be 1 to 20 numbers");
+    info!("{:?}", arg_it.collect::<Vec<_>>());
+    todo!("Task2")
 }
