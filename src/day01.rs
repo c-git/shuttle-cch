@@ -23,15 +23,21 @@ async fn task1_cube_the_bits(nums: web::Path<Nums>) -> actix_web::Result<String>
 
 #[tracing::instrument]
 async fn task2_the_sled_id_system(args: web::Path<String>) -> actix_web::Result<String> {
-    let mut result = args
+    let args: Vec<_> = args
         .split('/')
-        // TODO: Remove unwrap
         .map(|x| {
             x.parse::<i32>()
                 .with_context(|| format!("Failed to parse {x:?} as i32"))
                 .map_err(error::ErrorBadRequest)
-                .unwrap()
         })
+        .collect();
+
+    let mut numbers = Vec::with_capacity(args.len());
+    for arg in args {
+        numbers.push(arg?);
+    }
+    let mut result = numbers
+        .into_iter()
         .reduce(|acc, x| acc ^ x)
         .expect("Shouldn't be empty, assumed to be 1 to 20 numbers");
 
