@@ -1,4 +1,5 @@
 use actix_web::{error, web, Scope};
+use anyhow::Context;
 use tracing::info;
 
 pub(crate) fn scope() -> Scope {
@@ -25,7 +26,12 @@ async fn task2_the_sled_id_system(args: web::Path<String>) -> actix_web::Result<
     let mut result = args
         .split('/')
         // TODO: Remove unwrap
-        .map(|x| x.parse::<i32>().map_err(error::ErrorBadRequest).unwrap())
+        .map(|x| {
+            x.parse::<i32>()
+                .with_context(|| format!("Failed to parse {x:?} as i32"))
+                .map_err(error::ErrorBadRequest)
+                .unwrap()
+        })
         .reduce(|acc, x| acc ^ x)
         .expect("Shouldn't be empty, assumed to be 1 to 20 numbers");
 
