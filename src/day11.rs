@@ -29,8 +29,9 @@ async fn task2_bull_mode_activated(
     MultipartForm(payload): MultipartForm<PostData>,
     req: HttpRequest,
 ) -> actix_web::Result<impl Responder, Error> {
-    let img = image::open(payload.image.file)
-        .context("Failed to load image")
+    let img = image::io::Reader::open(payload.image.file)?
+        .with_guessed_format()?
+        .decode()
         .map_err(ErrorBadRequest)?;
     let pixels = match img.as_rgb8() {
         Some(value) => value,
