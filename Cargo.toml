@@ -5,8 +5,10 @@ edition = "2021"
 
 [dependencies]
 actix-files = "0.6.2"
+actix-multipart = "0.6.1"
 actix-web = "4.3.1"
 anyhow = "1.0.75"
+futures-util = "0.3.29"
 serde = { version = "1.0.193", features = ["derive"] }
 shuttle-actix-web = "0.35.0"
 shuttle-runtime = "0.35.0"
