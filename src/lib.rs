@@ -14,8 +14,8 @@ pub fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.default_service(web::route().to(not_found));
 }
 
-#[tracing::instrument(name = "Not Found", skip())]
+#[tracing::instrument]
 pub async fn not_found() -> actix_web::Result<HttpResponse> {
     error!("Failed to match route");
-    Ok(HttpResponse::NotFound().body("404 Not found\n"))
+    Ok(HttpResponse::NotFound().body("404 - Not found\n"))
 }
