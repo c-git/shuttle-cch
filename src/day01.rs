@@ -1,4 +1,4 @@
-use actix_web::{web, Scope};
+use actix_web::{error, web, Scope};
 use tracing::info;
 
 pub(crate) fn scope() -> Scope {
@@ -22,9 +22,13 @@ async fn task1_cube_the_bits(nums: web::Path<Nums>) -> actix_web::Result<String>
 
 #[tracing::instrument]
 async fn task2_the_sled_id_system(args: web::Path<String>) -> actix_web::Result<String> {
-    let mut arg_it = args.split('/').map(|x| x.parse::<i32>());
+    let mut result = args
+        .split('/')
+        .map(|x| x.parse::<i32>().map_err(error::ErrorBadRequest).unwrap())
+        .reduce(|acc, x| acc ^ x)
+        .expect("Shouldn't be empty, assumed to be 1 to 20 numbers");
 
-    // let mut result = arg_it.next().expect("Assumed to be 1 to 20 numbers");
-    info!("{:?}", arg_it.collect::<Vec<_>>());
-    todo!("Task2")
+    result = result.pow(3);
+    info!("{result}");
+    Ok(result.to_string())
 }
