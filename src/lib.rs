@@ -2,7 +2,7 @@ use actix_web::{
     web::{self, ServiceConfig},
     HttpRequest, HttpResponse,
 };
-use tracing::{error, warn};
+use tracing::error;
 
 mod day01;
 mod day11;
@@ -13,22 +13,11 @@ pub fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.service(day_minus_1::scope());
     cfg.service(day01::scope());
     cfg.service(day11::scope());
-    cfg.route("/{path:.*}", web::get().to(catch_unmatched));
-    cfg.route("/{path:.*}", web::post().to(catch_unmatched));
     cfg.default_service(web::route().to(not_found));
 }
 
 #[tracing::instrument]
-async fn catch_unmatched(
-    path: web::Path<String>,
-    req: HttpRequest,
-) -> actix_web::Result<HttpResponse> {
-    warn!("Caught an unmatched route");
-    Ok(HttpResponse::NotFound().body("404 Not found (Logged)\n"))
-}
-
-#[tracing::instrument]
-pub async fn not_found() -> actix_web::Result<HttpResponse> {
+pub async fn not_found(req: HttpRequest) -> actix_web::Result<HttpResponse> {
     error!("Failed to match route");
     Ok(HttpResponse::NotFound().body("404 - Not found\n"))
 }
