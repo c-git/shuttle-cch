@@ -1,7 +1,7 @@
 use actix_files::NamedFile;
-use actix_multipart::Multipart;
-use actix_web::{web, HttpRequest, Scope};
-use futures_util::StreamExt as _;
+use actix_multipart::form::{tempfile::TempFile, MultipartForm};
+use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse, Responder, Scope};
+use anyhow::Context;
 
 pub(crate) fn scope() -> Scope {
     web::scope("/11")
@@ -19,20 +19,24 @@ async fn task1_served_on_a_silver_platter() -> actix_web::Result<NamedFile> {
         .map_err(actix_web::error::ErrorInternalServerError)
 }
 
+#[derive(Debug, MultipartForm)]
+struct PostData {
+    image: TempFile,
+}
+
 #[tracing::instrument(skip(payload))]
 async fn task2_bull_mode_activated(
-    mut payload: Multipart,
+    MultipartForm(payload): MultipartForm<PostData>,
     req: HttpRequest,
-) -> actix_web::Result<NamedFile> {
-    // From https://www.youtube.com/watch?v=NWxs6BQOzxU
-    // iterate over multipart stream
-    // while let Some(item) = payload.next().await {
-    //     let mut field = item?;
+) -> actix_web::Result<impl Responder, Error> {
+    let img = image::open(payload.image.file)
+        .context("Failed to load image")
+        .map_err(ErrorBadRequest)?;
+    let pixels = match img.as_rgb8() {
+        Some(value) => value,
+        None => return Err(ErrorBadRequest("Unable to access image pixels")),
+    };
+    dbg!(pixels);
 
-    //     // Field in turn is stream of *Bytes* object
-    //     while let Some(chunk) = field.next().await {
-    //         println!("-- CHUNK: \n{:?}", std::str::from_utf8(&chunk?));
-    //     }
-    // }
-    todo!("Task2")
+    Ok(HttpResponse::Ok())
 }
