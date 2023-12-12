@@ -24,6 +24,7 @@ async fn task1_cube_the_bits(nums: web::Path<Nums>) -> actix_web::Result<String>
 async fn task2_the_sled_id_system(args: web::Path<String>) -> actix_web::Result<String> {
     let mut result = args
         .split('/')
+        // TODO: Remove unwrap
         .map(|x| x.parse::<i32>().map_err(error::ErrorBadRequest).unwrap())
         .reduce(|acc, x| acc ^ x)
         .expect("Shouldn't be empty, assumed to be 1 to 20 numbers");
