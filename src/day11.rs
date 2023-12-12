@@ -1,7 +1,6 @@
 use actix_files::NamedFile;
 use actix_multipart::form::{tempfile::TempFile, MultipartForm};
 use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse, Responder, Scope};
-use anyhow::Context;
 
 pub(crate) fn scope() -> Scope {
     web::scope("/11")
@@ -37,7 +36,7 @@ async fn task2_bull_mode_activated(
         Some(value) => value,
         None => return Err(ErrorBadRequest("Unable to access image pixels")),
     };
-    dbg!(pixels);
+    dbg!(pixels[(0, 0)]);
 
     Ok(HttpResponse::Ok())
 }
