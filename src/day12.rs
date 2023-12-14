@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::OnceLock};
 
-use actix_web::{web, HttpResponse, Scope};
+use actix_web::{error, web, HttpResponse, Scope};
 use tokio::{sync::Mutex, time::Instant};
 use tracing::info;
 
@@ -38,7 +38,12 @@ async fn task1_load(
     id: web::Path<String>,
     map: web::Data<WrappedMap>,
 ) -> actix_web::Result<HttpResponse> {
-    let result = 4;
+    let map = map.lock().await;
+    let saved_instant = match map.get(id.as_ref()) {
+        Some(value) => value,
+        None => return Err(error::ErrorBadRequest("This ID has not been seen before")),
+    };
+    let result = Instant::now().duration_since(*saved_instant).as_secs();
     info!("Result = {result}");
     Ok(HttpResponse::Ok().body(result.to_string()))
 }
