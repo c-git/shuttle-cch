@@ -1525,6 +1525,7 @@ dependencies = [
  "chrono",
  "futures-util",
  "image",
+ "regex",
  "serde",
  "shuttle-actix-web",
  "shuttle-runtime",

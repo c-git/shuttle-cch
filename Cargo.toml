@@ -11,6 +11,7 @@ anyhow = "1.0.75"
 chrono = "0.4.31"
 futures-util = "0.3.29"
 image = "0.24.7"
+regex = "1.10.2"
 serde = { version = "1.0.193", features = ["derive"] }
 shuttle-actix-web = "0.35.0"
 shuttle-runtime = "0.35.0"
