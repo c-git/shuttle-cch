@@ -5,6 +5,8 @@ use actix_web::{
     web::{self, Json},
     HttpResponse, Scope,
 };
+use chrono::{Datelike, Local};
+use serde::Serialize;
 use tokio::{sync::Mutex, time::Instant};
 use tracing::info;
 use ulid_generator_rs::{Endian, ULID};
@@ -31,6 +33,10 @@ pub(crate) fn scope() -> Scope {
         .route(
             "/ulids",
             web::post().to(task2_unanimously_legendary_identifier_ulid),
+        )
+        .route(
+            "/ulids/{weekday}",
+            web::post().to(task3_let_santa_broil_lsb),
         )
 }
 
@@ -81,5 +87,47 @@ async fn task2_unanimously_legendary_identifier_ulid(
     Ok(HttpResponse::Ok().json(result))
 }
 
+#[derive(Serialize, Debug)]
+struct Stats {
+    #[serde(rename = "christmas eve")]
+    on_christmas_eve: u16,
+    weekday: u16,
+    #[serde(rename = "in the future")]
+    in_future: u16,
+    #[serde(rename = "LSB is 1")]
+    lsb_is_1: u16,
+}
+
 #[tracing::instrument]
-async fn task3_let_santa_broil_lsb() {}
+async fn task3_let_santa_broil_lsb(
+    weekday: web::Path<u32>,
+    Json(ulids): web::Json<Vec<ULID>>,
+) -> actix_web::Result<HttpResponse> {
+    let now = Local::now();
+    let weekday = weekday.into_inner();
+
+    let mut result = Stats {
+        on_christmas_eve: 0,
+        weekday: 0,
+        in_future: 0,
+        lsb_is_1: 0,
+    };
+
+    for ulid in ulids {
+        let date_time = ulid.to_date_time();
+        if date_time.month() == 12 && date_time.day() == 24 {
+            result.on_christmas_eve += 1;
+        }
+        if date_time.weekday().num_days_from_monday() == weekday {
+            result.weekday += 1;
+        }
+        if date_time > now {
+            result.in_future += 1;
+        }
+        if ulid.least_significant_bits() % 2 == 1 {
+            result.lsb_is_1 += 1;
+        }
+    }
+    info!("Result = {result:?}");
+    Ok(HttpResponse::Ok().json(result))
+}

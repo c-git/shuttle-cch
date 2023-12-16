@@ -8,6 +8,7 @@ actix-files = "0.6.2"
 actix-multipart = "0.6.1"
 actix-web = "4.3.1"
 anyhow = "1.0.75"
+chrono = "0.4.31"
 futures-util = "0.3.29"
 image = "0.24.7"
 serde = { version = "1.0.193", features = ["derive"] }
