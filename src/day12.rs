@@ -114,7 +114,7 @@ async fn task3_let_santa_broil_lsb(
     };
 
     for ulid in ulids {
-        let date_time = ulid.to_date_time();
+        let date_time = ulid.to_date_time().with_timezone(&chrono::Utc);
         if date_time.month() == 12 && date_time.day() == 24 {
             result.on_christmas_eve += 1;
         }
