@@ -9,13 +9,16 @@ actix-multipart = "0.6.1"
 actix-web = "4.3.1"
 anyhow = "1.0.75"
 chrono = "0.4.31"
+data-encoding = "2.5.0"
 futures-util = "0.3.29"
 image = "0.24.7"
 regex = "1.10.2"
+ring = "0.17.7"
 serde = { version = "1.0.193", features = ["derive"] }
 shuttle-actix-web = "0.35.0"
 shuttle-runtime = "0.35.0"
 tokio = "1.26.0"
 tracing = "0.1.40"
 ulid-generator-rs = { version = "0.0.93", features = ["serde", "uuid"] }
+unic-emoji-char = "0.9.0"
 uuid = { version = "1.6.1", features = ["serde"] }
