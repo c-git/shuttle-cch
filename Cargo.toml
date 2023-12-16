@@ -15,3 +15,5 @@ shuttle-actix-web = "0.35.0"
 shuttle-runtime = "0.35.0"
 tokio = "1.26.0"
 tracing = "0.1.40"
+ulid-generator-rs = "0.0.93"
+uuid = { version = "1.6.1", features = ["serde"] }

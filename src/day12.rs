@@ -5,8 +5,11 @@ use actix_web::{
     web::{self, Json},
     HttpResponse, Scope,
 };
+use anyhow::Context;
 use tokio::{sync::Mutex, time::Instant};
 use tracing::info;
+use ulid_generator_rs::{Endian, ULID};
+use uuid::Uuid;
 
 type Map = HashMap<String, Instant>;
 type WrappedMap = Mutex<Map>;
@@ -59,7 +62,26 @@ async fn task1_load(
 #[tracing::instrument]
 async fn task2_unanimously_legendary_identifier_ulid(
     Json(ulids): web::Json<Vec<String>>,
-) -> HttpResponse {
-    info!("{ulids:?}");
-    HttpResponse::Ok().json(ulids)
+) -> actix_web::Result<HttpResponse> {
+    let result: Vec<String> = ulids
+        .into_iter()
+        .rev()
+        .map(|x| {
+            let ulid = x
+                .parse::<ULID>()
+                .context("Failed to parse ULID")
+                .map_err(error::ErrorBadRequest)?;
+            let b_vec = ulid.to_byte_array(Endian::BE);
+            let b_array = b_vec.try_into().map_err(|x: Vec<_>| {
+                error::ErrorInternalServerError(format!(
+                    "Failed to convert vec of length: {} into [u8; 16]",
+                    x.len()
+                ))
+            })?;
+            let uuid = Uuid::from_bytes(b_array);
+            Ok(uuid.to_string())
+        })
+        .collect::<actix_web::Result<Vec<String>>>()?;
+    info!("Result = {result:?}");
+    Ok(HttpResponse::Ok().json(result))
 }
