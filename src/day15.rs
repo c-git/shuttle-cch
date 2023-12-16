@@ -187,7 +187,7 @@ fn rule3(p: &str) -> Option<HttpResponse> {
 
 fn rule4(p: &str) -> Option<HttpResponse> {
     static RE_DIGIT: OnceLock<Regex> = OnceLock::new();
-    let re_digit = RE_DIGIT.get_or_init(|| Regex::new(r"-?\d+").expect("Failed to compile regex"));
+    let re_digit = RE_DIGIT.get_or_init(|| Regex::new(r"\d+").expect("Failed to compile regex"));
     if re_digit
         .find_iter(p)
         .map(|x| x.as_str().parse::<i32>().unwrap())
