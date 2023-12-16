@@ -72,10 +72,10 @@ async fn task2_unanimously_legendary_identifier_ulid(
                 .context("Failed to parse ULID")
                 .map_err(error::ErrorBadRequest)?;
             let b_vec = ulid.to_byte_array(Endian::BE);
-            let b_array = b_vec.try_into().map_err(|x: Vec<_>| {
+            let b_array = b_vec.try_into().map_err(|e: Vec<_>| {
                 error::ErrorInternalServerError(format!(
                     "Failed to convert vec of length: {} into [u8; 16]",
-                    x.len()
+                    e.len()
                 ))
             })?;
             let uuid = Uuid::from_bytes(b_array);
@@ -85,3 +85,6 @@ async fn task2_unanimously_legendary_identifier_ulid(
     info!("Result = {result:?}");
     Ok(HttpResponse::Ok().json(result))
 }
+
+#[tracing::instrument]
+async fn task3_let_santa_broil_lsb() {}
