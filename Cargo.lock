@@ -2834,7 +2834,9 @@ checksum = "b1ba5c40720dd32baffd411092184adcc34c8f83aa754df5f81b80ccc0024133"
 dependencies = [
  "chrono",
  "rand",
+ "serde",
  "thiserror",
+ "uuid",
 ]
 
 [[package]]
