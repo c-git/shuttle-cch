@@ -1,6 +1,10 @@
 use std::{collections::HashMap, sync::OnceLock};
 
-use actix_web::{error, web, HttpResponse, Scope};
+use actix_web::{
+    error,
+    web::{self, Json},
+    HttpResponse, Scope,
+};
 use tokio::{sync::Mutex, time::Instant};
 use tracing::info;
 
@@ -22,6 +26,10 @@ pub(crate) fn scope() -> Scope {
         .app_data(map.clone())
         .route("/save/{id}", web::post().to(task1_save))
         .route("/load/{id}", web::get().to(task1_load))
+        .route(
+            "/ulids",
+            web::post().to(task2_unanimously_legendary_identifier_ulid),
+        )
 }
 
 #[tracing::instrument]
@@ -46,4 +54,12 @@ async fn task1_load(
     let result = Instant::now().duration_since(*saved_instant).as_secs();
     info!("Result = {result}");
     Ok(HttpResponse::Ok().body(result.to_string()))
+}
+
+#[tracing::instrument]
+async fn task2_unanimously_legendary_identifier_ulid(
+    Json(ulids): web::Json<Vec<String>>,
+) -> HttpResponse {
+    info!("{ulids:?}");
+    HttpResponse::Ok().json(ulids)
 }
