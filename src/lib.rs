@@ -6,6 +6,7 @@ use actix_web::{
 use tracing::error;
 
 mod day01;
+mod day04;
 mod day11;
 mod day12;
 mod day15;
@@ -15,6 +16,7 @@ pub fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.route("/", web::get().to(day_minus_1::task1_everything_is_ok));
     cfg.service(day_minus_1::scope().wrap(Logger::default()));
     cfg.service(day01::scope().wrap(Logger::default()));
+    cfg.service(day04::scope().wrap(Logger::default()));
     cfg.service(day11::scope().wrap(Logger::default()));
     cfg.service(day12::scope().wrap(Logger::default()));
     cfg.service(day15::scope().wrap(Logger::default()));
