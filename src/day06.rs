@@ -1,7 +1,4 @@
-use std::sync::OnceLock;
-
 use actix_web::{web, HttpResponse, Scope};
-use regex::Regex;
 use serde::Serialize;
 use tracing::info;
 pub(crate) fn scope() -> Scope {
@@ -19,16 +16,10 @@ struct Output {
 
 #[tracing::instrument]
 async fn elf_counting(text: String) -> HttpResponse {
-    static RE_ELF: OnceLock<Regex> = OnceLock::new();
-    static RE_ELF_ON_A_SHELF: OnceLock<Regex> = OnceLock::new();
-    static RE_SHELF: OnceLock<Regex> = OnceLock::new();
-    let re_elf = RE_ELF.get_or_init(|| Regex::new("elf").expect("Failed to compile regex"));
-    let re_elf_on_a_shelf = RE_ELF_ON_A_SHELF
-        .get_or_init(|| Regex::new("elf on a shelf").expect("Failed to compile regex"));
-    let re_shelf = RE_SHELF.get_or_init(|| Regex::new("shelf").expect("Failed to compile regex"));
-    let elf = re_elf.find_iter(&text).count();
-    let elf_on_a_shelf = re_elf_on_a_shelf.find_iter(&text).count();
-    let shelf = re_shelf.find_iter(&text).count();
+    // A more elegant solution is likely able to be found possibly using aho_corasick but for simplicity I'm going to use a simple brute force search
+    let elf = count("elf", &text);
+    let elf_on_a_shelf = count("elf on a shelf", &text);
+    let shelf = count("shelf", &text);
     let result = Output {
         elf,
         elf_on_a_shelf,
@@ -36,4 +27,17 @@ async fn elf_counting(text: String) -> HttpResponse {
     };
     info!("result={result:?}");
     HttpResponse::Ok().json(result)
+}
+
+fn count(key: &str, text: &str) -> usize {
+    let key = key.as_bytes();
+    let mut text = text.as_bytes();
+    let mut result = 0;
+    while text.len() >= key.len() {
+        if text.starts_with(key) {
+            result += 1;
+        }
+        text = &text[1..];
+    }
+    result
 }
