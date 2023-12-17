@@ -76,7 +76,7 @@ fn check_string_for_2_consecutive_letters(password: &str) -> bool {
     let mut last_char = if let Some(c) = iter.next() {
         c
     } else {
-        return false; // No charters so not 2 letters in a row
+        return false; // No charters so no 2 letters in a row
     };
     for c in iter {
         if c.is_alphabetic() && c == last_char {
