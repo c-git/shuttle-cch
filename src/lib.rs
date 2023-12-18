@@ -9,6 +9,7 @@ mod day01;
 mod day04;
 mod day06;
 mod day07;
+mod day08;
 mod day11;
 mod day12;
 mod day15;
@@ -21,6 +22,7 @@ pub fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.service(day04::scope().wrap(Logger::default()));
     cfg.service(day06::scope().wrap(Logger::default()));
     cfg.service(day07::scope().wrap(Logger::default()));
+    cfg.service(day08::scope().wrap(Logger::default()));
     cfg.service(day11::scope().wrap(Logger::default()));
     cfg.service(day12::scope().wrap(Logger::default()));
     cfg.service(day15::scope().wrap(Logger::default()));

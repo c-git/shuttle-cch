@@ -5,6 +5,9 @@
         "actix",
         "aeiouy",
         "HEXUPPER",
+        "pikachu",
+        "pokedex",
+        "Rustemon",
         "ulids"
     ]
 }

@@ -16,6 +16,7 @@ futures-util = "0.3.29"
 image = "0.24.7"
 regex = "1.10.2"
 ring = "0.17.7"
+rustemon = "3.2.1"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
 shuttle-actix-web = "0.35.0"
