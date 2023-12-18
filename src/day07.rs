@@ -7,6 +7,12 @@ pub(crate) fn scope() -> Scope {
 
 #[tracing::instrument]
 async fn task1_based_encoding_64_th_edition(req: HttpRequest) -> actix_web::Result<HttpResponse> {
+    let json = extract_recipe(req)?;
+    Ok(HttpResponse::Ok().body(json))
+}
+
+#[tracing::instrument]
+fn extract_recipe(req: HttpRequest) -> actix_web::Result<String> {
     let cookie = match req.cookie("recipe") {
         Some(val) => val,
         None => return Err(error::ErrorBadRequest("recipe cookie not found")),
@@ -19,6 +25,10 @@ async fn task1_based_encoding_64_th_edition(req: HttpRequest) -> actix_web::Resu
         .map_err(error::ErrorBadRequest)?;
     let json = String::from_utf8(decoded).map_err(error::ErrorBadRequest)?;
     info!(json);
+    Ok(json)
+}
 
-    Ok(HttpResponse::Ok().body(json))
+#[tracing::instrument]
+async fn task2_the_secret_cookie_recipe(req: HttpRequest) -> actix_web::Result<HttpResponse> {
+    todo!()
 }
