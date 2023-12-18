@@ -9,14 +9,19 @@ pub(crate) fn scope() -> Scope {
 
 #[tracing::instrument]
 async fn task1_its_pikachu(pokedex_number: web::Path<i64>) -> actix_web::Result<String> {
+    let weight = get_pokemon_weight(pokedex_number.into_inner()).await?;
+    Ok(weight.to_string())
+}
+
+#[tracing::instrument]
+async fn get_pokemon_weight(pokedex_number: i64) -> actix_web::Result<f64> {
     let client: RustemonClient = Default::default();
-    let weight = pokemon::get_by_id(pokedex_number.into_inner(), &client)
+    let weight = pokemon::get_by_id(pokedex_number, &client)
         .await
         .context("failed to get pokemon info")
         .map_err(error::ErrorBadRequest)?
-        .weight
-        / 10;
+        .weight as f64
+        / 10.0;
     info!(weight);
-
-    Ok(weight.to_string())
+    Ok(weight)
 }
