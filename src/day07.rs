@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use actix_web::{error, web, HttpRequest, HttpResponse, Scope};
 use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
@@ -31,21 +33,11 @@ fn extract_recipe(req: HttpRequest) -> actix_web::Result<String> {
     Ok(json)
 }
 
+type Ingredients = HashMap<String, usize>;
 #[derive(Debug, Deserialize)]
 struct Input {
     recipe: Ingredients,
     pantry: Ingredients,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-struct Ingredients {
-    flour: usize,
-    sugar: usize,
-    butter: usize,
-    #[serde(rename = "baking powder")]
-    baking_powder: usize,
-    #[serde(rename = "chocolate chips")]
-    chocolate_chips: usize,
 }
 
 #[derive(Debug, Serialize)]
@@ -61,27 +53,31 @@ async fn task2_the_secret_cookie_recipe(req: HttpRequest) -> actix_web::Result<H
     info!("Parsed Input = {input:?}");
 
     let mut cookies = usize::MAX;
-    if input.recipe.flour > 0 {
-        cookies = cookies.min(input.pantry.flour / input.recipe.flour);
+    for (ingredient, needed) in input.recipe.iter() {
+        if needed == &0 {
+            // We don't need this just skip
+            continue;
+        }
+        let available = if let Some(qty) = input.pantry.get(ingredient) {
+            qty
+        } else {
+            cookies = 0;
+            break;
+        };
+        cookies = cookies.min(available / needed);
     }
-    if input.recipe.sugar > 0 {
-        cookies = cookies.min(input.pantry.sugar / input.recipe.sugar);
-    }
-    if input.recipe.butter > 0 {
-        cookies = cookies.min(input.pantry.butter / input.recipe.butter);
-    }
-    if input.recipe.baking_powder > 0 {
-        cookies = cookies.min(input.pantry.baking_powder / input.recipe.baking_powder);
-    }
-    if input.recipe.chocolate_chips > 0 {
-        cookies = cookies.min(input.pantry.chocolate_chips / input.recipe.chocolate_chips);
-    }
+
     let mut pantry = input.pantry.clone();
-    pantry.flour -= input.recipe.flour * cookies;
-    pantry.sugar -= input.recipe.sugar * cookies;
-    pantry.butter -= input.recipe.butter * cookies;
-    pantry.baking_powder -= input.recipe.baking_powder * cookies;
-    pantry.chocolate_chips -= input.recipe.chocolate_chips * cookies;
+    for (ingredient, qty) in pantry.iter_mut() {
+        if let Some(needed) = input.recipe.get(ingredient) {
+            *qty -= needed * cookies;
+        }
+    }
+    // pantry.flour -= input.recipe.flour * cookies;
+    // pantry.sugar -= input.recipe.sugar * cookies;
+    // pantry.butter -= input.recipe.butter * cookies;
+    // pantry.baking_powder -= input.recipe.baking_powder * cookies;
+    // pantry.chocolate_chips -= input.recipe.chocolate_chips * cookies;
     let result = Output { cookies, pantry };
     info!("result = {result:?}");
 
