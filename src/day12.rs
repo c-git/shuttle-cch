@@ -17,7 +17,7 @@ type WrappedMap = Mutex<Map>;
 type AppData = web::Data<WrappedMap>;
 
 pub(crate) fn scope() -> Scope {
-    // Decided to use OnceLock instead of creating MapOutside to keep days contained
+    // Decided to use OnceLock instead of creating the map outside to keep days contained
     // Thus it should be noted this is not needed if map is created in main.rs
     static ONCE_LOCK: OnceLock<AppData> = OnceLock::new();
     if ONCE_LOCK.get().is_none() {
