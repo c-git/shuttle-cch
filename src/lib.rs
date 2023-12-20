@@ -13,6 +13,7 @@ mod day08;
 mod day11;
 mod day12;
 mod day15;
+mod day20;
 mod day_minus_1;
 
 pub fn modify_service_config(cfg: &mut ServiceConfig) {
@@ -26,6 +27,7 @@ pub fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.service(day11::scope().wrap(Logger::default()));
     cfg.service(day12::scope().wrap(Logger::default()));
     cfg.service(day15::scope().wrap(Logger::default()));
+    cfg.service(day20::scope().wrap(Logger::default()));
     cfg.default_service(web::route().to(not_found).wrap(Logger::default()));
 }
 
