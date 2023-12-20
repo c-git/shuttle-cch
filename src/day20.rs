@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use actix_web::{
     web::{self},
     HttpResponse, Scope,
@@ -8,42 +10,33 @@ use tar::Archive;
 use tokio::io::AsyncWriteExt;
 
 pub(crate) fn scope() -> Scope {
-    web::scope("/20").route(
-        "/archive_files",
-        web::post().to(task1_archive_analysis_count),
-    )
-    // .route(
-    //     "/archive_files_size",
-    //     web::post().to(task1_archive_analysis_size),
-    // )
+    web::scope("/20")
+        .route(
+            "/archive_files",
+            web::post().to(task1_archive_analysis_count),
+        )
+        .route(
+            "/archive_files_size",
+            web::post().to(task1_archive_analysis_size),
+        )
 }
 
 #[tracing::instrument(skip(body))]
 async fn task1_archive_analysis_count(body: web::Payload) -> actix_web::Result<HttpResponse> {
-    let a = receive_tar(body).await?;
-    let b = a.metadata().await?;
-    let c = b.len();
-
-    // for file in a.entries().unwrap() {
-    //     // Make sure there wasn't an I/O error
-    //     let mut file = file.unwrap();
-
-    //     // Inspect metadata about the file
-    //     println!("{:?}", file.header().path().unwrap());
-    //     println!("{}", file.header().size().unwrap());
-
-    //     // files implement the Read trait
-    //     let mut s = String::new();
-    //     file.read_to_string(&mut s).unwrap();
-    //     println!("{}", s);
-    // }
-    Ok(HttpResponse::Ok().body(c.to_string()))
+    let f = receive_tar(body).await?;
+    let g = File::open(f.file_path())?;
+    let mut a = Archive::new(g);
+    let result = a.entries()?.count();
+    Ok(HttpResponse::Ok().body(result.to_string()))
 }
 
 #[tracing::instrument(skip(body))]
 async fn task1_archive_analysis_size(body: web::Payload) -> actix_web::Result<HttpResponse> {
-    let a = receive_tar(body).await?;
-    todo!()
+    let f = receive_tar(body).await?;
+    let g = File::open(f.file_path())?;
+    let mut a = Archive::new(g);
+    let result: u64 = a.entries()?.map(|x| x.unwrap().size()).sum();
+    Ok(HttpResponse::Ok().body(result.to_string()))
 }
 
 async fn receive_tar(mut body: web::Payload) -> actix_web::Result<TempFile> {
@@ -51,5 +44,6 @@ async fn receive_tar(mut body: web::Payload) -> actix_web::Result<TempFile> {
     while let Some(item) = body.next().await {
         result.write_all(&item?).await?;
     }
+    result.sync_all().await?;
     Ok(result)
 }
