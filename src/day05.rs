@@ -7,16 +7,23 @@ pub(crate) fn scope() -> Scope {
 
 #[derive(Debug, serde::Deserialize)]
 struct QueryData {
-    offset: usize,
-    limit: usize,
+    offset: Option<usize>,
+    limit: Option<usize>,
+    split: Option<usize>,
 }
 
 #[tracing::instrument]
 async fn slicing_the_loop(
     web::Json(names): web::Json<Vec<String>>,
-    web::Query(QueryData { offset, limit }): web::Query<QueryData>,
+    web::Query(QueryData {
+        offset,
+        limit,
+        split,
+    }): web::Query<QueryData>,
 ) -> actix_web::Result<HttpResponse> {
-    let result = match names.get(offset..(offset + limit)) {
+    let offset = offset.unwrap_or_default();
+    let limit = limit.unwrap_or(names.len() - offset);
+    let slice = match names.get(offset..(offset + limit)) {
         Some(x) => x,
         None => {
             return Err(error::ErrorBadRequest(format!(
@@ -25,6 +32,19 @@ async fn slicing_the_loop(
             )));
         }
     };
-    info!("result={result:?}");
-    Ok(HttpResponse::Ok().json(result))
+
+    if let Some(x) = split {
+        if x == 0 {
+            return Err(error::ErrorBadRequest("split cannot be 0"));
+        }
+        let mut result = Vec::with_capacity(slice.len() / x + 1);
+        for chunk in slice.chunks(x) {
+            result.push(chunk)
+        }
+        info!("result={result:?}");
+        Ok(HttpResponse::Ok().json(result))
+    } else {
+        info!("result={slice:?}");
+        Ok(HttpResponse::Ok().json(slice))
+    }
 }
