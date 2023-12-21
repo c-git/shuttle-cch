@@ -22,7 +22,12 @@ async fn slicing_the_loop(
     }): web::Query<QueryData>,
 ) -> actix_web::Result<HttpResponse> {
     let offset = offset.unwrap_or_default();
-    let limit = limit.unwrap_or(names.len() - offset);
+    let remaining_size = names.len() - offset;
+    let limit = match limit {
+        Some(x) if x <= remaining_size => x,
+        _ => remaining_size,
+    };
+
     let slice = match names.get(offset..(offset + limit)) {
         Some(x) => x,
         None => {
