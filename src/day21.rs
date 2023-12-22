@@ -1,13 +1,31 @@
+use std::sync::OnceLock;
+
 use actix_web::{error, web, Scope};
 use dms_coordinates::DMS;
 use s2::{cell::Cell, cellid::CellID};
+use tokio::sync::Mutex;
 use tracing::info;
 
+type WrappedClient = Mutex<nominatim::Client>;
+type AppData = web::Data<WrappedClient>;
+
 pub(crate) fn scope() -> Scope {
-    web::scope("/21").route(
-        "/coords/{binary}",
-        web::get().to(task1_flat_squares_on_a_round_sphere),
-    )
+    static ONCE_LOCK: OnceLock<AppData> = OnceLock::new();
+    let nominatim_client = ONCE_LOCK.get_or_init(|| {
+        AppData::new(WrappedClient::new(nominatim::Client::new(
+            nominatim::IdentificationMethod::from_user_agent("cch-sol"),
+        )))
+    });
+    web::scope("/21")
+        .app_data(nominatim_client.clone())
+        .route(
+            "/coords/{binary}",
+            web::get().to(task1_flat_squares_on_a_round_sphere),
+        )
+        .route(
+            "/country/{binary}",
+            web::get().to(task2_turbo_fast_country_lookup),
+        )
 }
 
 #[tracing::instrument]
@@ -33,4 +51,33 @@ fn rounded_output(value: DMS) -> String {
         "{}°{}'{:.3}''{}",
         value.degrees, value.minutes, value.seconds, value.bearing
     )
+}
+#[tracing::instrument]
+async fn task2_turbo_fast_country_lookup(
+    binary: web::Path<String>,
+    client_wrapper: AppData,
+) -> actix_web::Result<String> {
+    let value = u64::from_str_radix(&binary, 2).map_err(error::ErrorBadRequest)?;
+    let cell_id = CellID(value);
+    let cell = Cell::from(cell_id);
+    let center = cell.center();
+    let latitude = format!("{}", center.latitude().deg());
+    let longitude = format!("{}", center.longitude().deg());
+
+    let client = client_wrapper.lock().await;
+
+    let search_response = client
+        .reverse(&latitude, &longitude, None)
+        .await
+        .map_err(error::ErrorInternalServerError)?;
+    let result = match search_response.address {
+        Some(a) => match a.country {
+            Some(c) => c,
+            None => return Err(error::ErrorInternalServerError("No Country Found")),
+        },
+        None => return Err(error::ErrorInternalServerError("No Address Found")),
+    };
+
+    info!(result);
+    Ok(result)
 }
