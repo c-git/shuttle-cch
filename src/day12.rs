@@ -20,12 +20,7 @@ pub(crate) fn scope() -> Scope {
     // Decided to use OnceLock instead of creating the map outside to keep days contained
     // Thus it should be noted this is not needed if map is created in main.rs
     static ONCE_LOCK: OnceLock<AppData> = OnceLock::new();
-    if ONCE_LOCK.get().is_none() {
-        ONCE_LOCK
-            .set(AppData::new(WrappedMap::new(Map::new())))
-            .expect("Just checked that it was empty");
-    }
-    let map = ONCE_LOCK.get().expect("Just ensured it was set");
+    let map = ONCE_LOCK.get_or_init(|| AppData::new(WrappedMap::new(Map::new())));
     web::scope("/12")
         .app_data(map.clone())
         .route("/save/{id}", web::post().to(task1_save))
