@@ -6,18 +6,21 @@ use s2::{cell::Cell, cellid::CellID};
 use tokio::sync::Mutex;
 use tracing::info;
 
-type WrappedClient = Mutex<nominatim::Client>;
+type WrappedClient = Mutex<reqwest::Client>;
 type AppData = web::Data<WrappedClient>;
 
 pub(crate) fn scope() -> Scope {
     static ONCE_LOCK: OnceLock<AppData> = OnceLock::new();
-    let nominatim_client = ONCE_LOCK.get_or_init(|| {
-        AppData::new(WrappedClient::new(nominatim::Client::new(
-            nominatim::IdentificationMethod::from_user_agent("cch-sol"),
-        )))
+    let client = ONCE_LOCK.get_or_init(|| {
+        AppData::new(WrappedClient::new(
+            reqwest::Client::builder()
+                .user_agent("cch-sol-day22")
+                .build()
+                .unwrap(),
+        ))
     });
     web::scope("/21")
-        .app_data(nominatim_client.clone())
+        .app_data(client.clone())
         .route(
             "/coords/{binary}",
             web::get().to(task1_flat_squares_on_a_round_sphere),
@@ -61,23 +64,37 @@ async fn task2_turbo_fast_country_lookup(
     let cell_id = CellID(value);
     let cell = Cell::from(cell_id);
     let center = cell.center();
-    let latitude = format!("{}", center.latitude().deg());
-    let longitude = format!("{}", center.longitude().deg());
+
+    // See https://nominatim.org/release-docs/develop/api/Reverse/
+    // See note on accept-language
+    let url = format!(
+        "https://nominatim.openstreetmap.org/reverse?format=json&accept-language=en-US,en&lat={}&lon={}",
+        center.latitude().deg(),
+        center.longitude().deg()
+    );
 
     let client = client_wrapper.lock().await;
-
-    let search_response = client
-        .reverse(&latitude, &longitude, None)
+    let result = client
+        .get(url)
+        .send()
         .await
-        .map_err(error::ErrorInternalServerError)?;
-    let result = match search_response.address {
-        Some(a) => match a.country {
-            Some(c) => c,
-            None => return Err(error::ErrorInternalServerError("No Country Found")),
-        },
-        None => return Err(error::ErrorInternalServerError("No Address Found")),
-    };
+        .map_err(error::ErrorInternalServerError)?
+        .json::<ResponseData>()
+        .await
+        .map_err(error::ErrorInternalServerError)?
+        .address
+        .country;
 
     info!(result);
     Ok(result)
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct ResponseData {
+    address: Address,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct Address {
+    country: String,
 }
