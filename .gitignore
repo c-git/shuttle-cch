@@ -2,3 +2,4 @@
 .shuttle-storage
 Secrets*.toml
 http-cacache/
+cache-day21/
