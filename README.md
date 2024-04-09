@@ -1,4 +1,10 @@
+# Archiving
+
+Keeping this repo mostly as a refernce but not keeping it updated so do use `cargo deny` or something similar to check for vulnerabilities from stale dependencies.
+I'll no longer be doing updates as this code is not in use.
+
 # My Shuttle CCH Solutions
+
 
 I've tried to keep each day self contained in a suitably named file
 
